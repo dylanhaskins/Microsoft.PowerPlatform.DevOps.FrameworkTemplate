@@ -1,0 +1,16 @@
+**/*
+!**/bin/Release/**
+!deployPackages.json
+!Environments.json
+!SolutionChecker.json
+!**/dataverse_*/**
+!**/pac_*/**
+!**/ReferenceData/**
+!**/Scripts/**
+!**/map.xml
+!**/dist/**
+!*.version
+!**/Common/Environments/**
+!**/Flows_*.json
+!**/pac_*/**
+!**/src/**

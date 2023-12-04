@@ -1,0 +1,48 @@
+parameters: 
+- name: environment
+  type: string
+  default: ""
+
+jobs:
+- deployment: Deploy_${{ parameters.environment }} 
+  workspace:
+    clean: all        
+  displayName: ${{ parameters.environment }} 
+  environment: ${{ parameters.environment }}
+  timeoutInMinutes: 360
+  strategy:
+    runOnce:
+      deploy:
+        steps: 
+        - download: current
+          artifact: drop
+
+        - pwsh: |
+            $WeekNum = Get-Date -UFormat "%V"
+            Write-Host "##vso[task.setvariable variable=WeekNum]$WeekNum"
+          displayName: 'Get WeekNumber for Caching'          
+
+        - task: Cache@2
+          inputs:
+            key: ppdo_v2_$(WeekNum) | $(Agent.OS)  
+            path: $(UserProfile)\Documents\WindowsPowerShell\
+            cacheHitVar: ToolingCached
+          displayName: Cache Tooling components
+
+        - task: PowerShell@2
+          displayName: 'Install Microsoft.PowerPlatform.DevOps'
+          inputs:
+            targetType: 'inline'
+            script: |
+              Install-Module -Name Microsoft.PowerPlatform.DevOps -AllowClobber -Scope CurrentUser -Force
+              #Install-Module -Name Microsoft.PowerPlatform.DevOps -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
+
+        - task: PowerShell@2
+          displayName: 'Deploy Solution'
+          inputs:
+           targetType: 'inline'
+           script: |
+             $useSP = Test-IsGuid $(d365username)
+             Write-Host Use Service Principal - $useSP
+
+             Start-DeploySolution -DeployServerUrl $(d365url) -UserName $(d365username) -Password $(d365password) -PipelinePath $(Pipeline.Workspace)/drop -UseClientSecret $useSP

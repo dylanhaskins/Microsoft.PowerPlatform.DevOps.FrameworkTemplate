@@ -1,0 +1,26 @@
+{
+  "Geo": "Australia",
+  "RuleSets": [
+    "Solution Checker"
+  ],
+  "ExcludedFileNamePattern": [
+    "*jquery*",
+    "*json*",
+    "*dg.xrmquery*",
+    "*vue*"
+  ],
+  "RuleLevelOverrides": [
+    {
+      "Rule": "il-specify-column",
+      "Level": "Medium"
+    },
+    {
+      "Rule": "il-use-autonumber-feature",
+      "Level": "Medium"
+    },
+    {
+      "Rule": "il-avoid-lock-plugin",
+      "Level": "Medium"
+    }
+  ]
+}

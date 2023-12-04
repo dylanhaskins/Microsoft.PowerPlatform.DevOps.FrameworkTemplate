@@ -1,0 +1,96 @@
+name: $(BuildDefinitionName)_$(SourceBranchName)_$(Build.Reason)_1.$(Year:yy)$(DayOfYear).$(Hours)$(Minutes)
+
+resources:
+ repositories:
+   - repository: self
+
+pool:
+  vmImage: 'windows-latest'
+
+trigger:
+  batch : true
+  branches:
+    include:
+    - /*
+  paths:
+    exclude:
+    - README.md
+
+pr:
+  paths:
+    exclude:
+    - README.md
+
+variables:
+  - name : BuildPlatform
+    value: 'any cpu'
+  - name : BuildConfiguration
+    value: 'release'
+  - name : Solution
+    value: '**\*.sln'
+
+stages:
+  - stage: Build
+    displayName: Build Stage
+    jobs:
+      - job: buildjob
+        displayName: Build Job
+        steps:
+          - checkout: self
+            submodules: true
+    
+          - task: NuGetToolInstaller@0
+            displayName: 'Use Latest NuGet'
+
+          - task: NuGetCommand@2
+            displayName: 'NuGet restore'
+            inputs:
+              restoreSolution: '$(Solution)'
+
+          - task: VSBuild@1
+            displayName: Build Solution
+            inputs:
+              solution: $(Solution)
+              vsVersion: latest
+              platform: $(BuildPlatform)
+              configuration: $(BuildConfiguration)
+              maximumCpuCount: true
+
+          - task: PowerShell@2
+            displayName: Powershell - set WindowsPowerShell directory
+            inputs:
+              targetType: 'inline'
+              script: |
+                mkdir "$(UserProfile)\Documents\WindowsPowerShell" -ErrorAction SilentlyContinue
+
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS)  
+              path: '$(UserProfile)\Documents\WindowsPowerShell'
+              cacheHitVar: ToolingCached
+            displayName: Cache Tooling components               
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish Pipeline Artifacts
+            inputs:
+              path:
+              artifact: drop
+                          
+      - job: testjob
+        displayName: Test Job
+        dependsOn: buildjob
+        steps:  
+          - download: current
+
+          - task: VSTest@2
+            displayName: Run Unit Tests
+            inputs:
+              testSelector: testAssemblies
+              testAssemblyVer2: |
+                **\Plugins*\**\Plugins.Tests.dll
+              searchFolder: $(Pipeline.Workspace)
+              codeCoverageEnabled: true
+              runInParallel: true
+              runOnlyImpactedTests: true
+
+

@@ -1,0 +1,25 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "module": "ES2015",   
+    "target": "ES6", 
+    "sourceMap": true,
+    "outDir": "dist",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "lib": ["DOM","ES2015"]
+
+  },
+  "include": [
+    "**/typings/**/*",
+    "**/src/**/*"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/bin",
+    "**/obj",
+    "wwwroot"
+  ]
+}
